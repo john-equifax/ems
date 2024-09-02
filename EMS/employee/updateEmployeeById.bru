@@ -1,0 +1,22 @@
+meta {
+  name: updateEmployeeById
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/employee/edit/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName":"John",
+    "lastName":"suresh",
+    "email":"john.equifax@gmail.com",
+    "phoneNumber":"6282583886",
+    "hireDate":"2024-05-01",
+    "salary":580000
+  }
+}

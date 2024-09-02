@@ -1,0 +1,22 @@
+meta {
+  name: saveEmployee
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/employee/new
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName":"John",
+    "lastName":"suresh",
+    "email":"john.equifax@gmail.com",
+    "phoneNumber":"6282583886",
+    "hireDate":"2024-05-01",
+    "salary":580000
+  }
+}

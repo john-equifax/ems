@@ -1,0 +1,17 @@
+meta {
+  name: addDeduction
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/employee/1/deduction/add?amount=1000.0&date=2024-08-15&name=pf
+  body: none
+  auth: none
+}
+
+query {
+  amount: 1000.0
+  date: 2024-08-15
+  name: pf
+}

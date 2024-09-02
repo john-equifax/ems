@@ -1,0 +1,16 @@
+meta {
+  name: generatePayslip
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/payslip/generate/1?startDate=2024-08-01&endDate=2024-08-31
+  body: none
+  auth: none
+}
+
+query {
+  startDate: 2024-08-01
+  endDate: 2024-08-31
+}
