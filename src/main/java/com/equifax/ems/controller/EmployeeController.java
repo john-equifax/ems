@@ -3,6 +3,8 @@ package com.equifax.ems.controller;
 import com.equifax.ems.entity.Bonus;
 import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
+import com.equifax.ems.service.BonusService;
+import com.equifax.ems.service.DeductionService;
 import com.equifax.ems.utility.ApiResponse;
 import com.equifax.ems.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +17,16 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(path = "/employee")
 public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
+    @Autowired
+    private BonusService bonusService;
+    @Autowired
+    private DeductionService deductionService;
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse> getAllEmployees() {
@@ -37,6 +44,28 @@ public class EmployeeController {
         try {
             Employee employee = employeeService.getEmployeeById(id);
             return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), employee, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(HttpStatus.NOT_FOUND.value(), null, e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/bonuses")
+    public ResponseEntity<ApiResponse> getBonusesByIdAndDate(@PathVariable("id") Long id, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        try {
+            List<Bonus> bonuses = bonusService.getBonusesForEmployee(id,startDate,endDate);
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), bonuses, null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse(HttpStatus.NOT_FOUND.value(), null, e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/deductions")
+    public ResponseEntity<ApiResponse> getDeductionsByIdAndDate(@PathVariable("id") Long id, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        try {
+            List<Deduction> deductions = deductionService.getDeductionForEmployee(id,startDate,endDate);
+            return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), deductions, null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse(HttpStatus.NOT_FOUND.value(), null, e.getMessage()));

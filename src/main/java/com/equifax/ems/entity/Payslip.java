@@ -1,5 +1,6 @@
 package com.equifax.ems.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -11,6 +12,7 @@ public class Payslip {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long payslipId;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;

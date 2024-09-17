@@ -1,5 +1,6 @@
 package com.equifax.ems.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -14,6 +15,7 @@ public class Deduction {
     private double amount;
     private Date date;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
