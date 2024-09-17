@@ -60,7 +60,7 @@ public class PayslipService {
 
             // Calculate the number of days between the two given dates
             long daysInThePeriod;
-            if (hireLocalDate.getMonth() == startLocalDate.getMonth() && hireLocalDate.isBefore(endLocalDate)) {
+            if (hireLocalDate.getYear() == startLocalDate.getYear() && hireLocalDate.getMonth() == startLocalDate.getMonth() && hireLocalDate.isBefore(endLocalDate)) {
                 daysInThePeriod = ChronoUnit.DAYS.between(hireLocalDate, endLocalDate);
             } else {
                 daysInThePeriod = ChronoUnit.DAYS.between(startLocalDate, endLocalDate);
