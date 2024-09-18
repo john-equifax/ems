@@ -2,6 +2,9 @@ package com.equifax.ems.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.util.Date;
 
@@ -11,8 +14,13 @@ public class Bonus {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long bonusId;
 
-    private double amount;
+    @NotBlank(message = "Bonus name is required")
     private String bonusName;
+
+    @Positive(message = "Amount must be positive")
+    private double amount;
+
+    @NotNull(message = "Date is required")
     private Date date;
 
     @JsonIgnore
@@ -30,24 +38,12 @@ public class Bonus {
         this.employee = employee;
     }
 
-    public Long getBonusId() {
-        return bonusId;
-    }
-
-    public void setBonusId(Long bonusId) {
-        this.bonusId = bonusId;
-    }
-
     public double getAmount() {
         return amount;
     }
 
     public void setAmount(double amount) {
         this.amount = amount;
-    }
-
-    public Date getDate() {
-        return date;
     }
 
     public void setDate(Date date) {
@@ -69,4 +65,5 @@ public class Bonus {
     public void setBonusName(String bonusName) {
         this.bonusName = bonusName;
     }
+
 }

@@ -1,6 +1,6 @@
 package com.equifax.ems.utility;
 
-public class UtlityMethods {
+public class UtilityMethods {
     public static double calculateTaxSlab(double income) {
         double taxPercentage = 0.0;
 

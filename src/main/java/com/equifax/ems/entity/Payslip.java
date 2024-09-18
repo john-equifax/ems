@@ -19,9 +19,12 @@ public class Payslip {
 
     private Date generateDate;
     private Date startDate;
+    private Date endDate;
+    private double tax;
+    private double netPay;
 
-    public Date getEndDate() {
-        return endDate;
+
+    public Payslip() {
     }
 
     public void setEndDate(Date endDate) {
@@ -36,32 +39,16 @@ public class Payslip {
         this.startDate = startDate;
     }
 
-    private Date endDate;
-    private double tax;
-    private double netPay;
-
-    public Payslip() {
-    }
-
-    //Setter and getter for Payslip ID
-    public Long getPayslipId() {
-        return payslipId;
-    }
-
     public void setPayslipId(Long payslipId) {
         this.payslipId = payslipId;
     }
 
-    //Setter and getter for Payslip generated DATE
-    public Date getGenerateDate() {
-        return generateDate;
-    }
 
     public void setGenerateDate(Date generateDate) {
         this.generateDate = generateDate;
     }
 
-    //Setter and getter for Payslip TAX
+
     public double getTax() {
         return tax;
     }
@@ -70,7 +57,7 @@ public class Payslip {
         this.tax = tax;
     }
 
-    //Setter and getter for Payslip NETPAY
+
     public double getNetPay() {
         return netPay;
     }
@@ -79,7 +66,7 @@ public class Payslip {
         this.netPay = netPay;
     }
 
-    //Setter and getter for Payslip employee
+
     public Employee getEmployee() {
         return employee;
     }

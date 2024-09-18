@@ -26,7 +26,6 @@ public class DeductionRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        // Create a new Employee instance
         employee = new Employee();
         employee.setFirstName("Jane");
         employee.setLastName("Doe");
@@ -36,18 +35,17 @@ public class DeductionRepositoryTest {
         employee.setSalary(60000);
         employeeRepository.save(employee);
 
-        // Create and save deductions for the employee
         Deduction deduction1 = new Deduction();
         deduction1.setAmount(200);
         deduction1.setDeductionName("Health Insurance");
-        deduction1.setDate(new Date(System.currentTimeMillis() - 100000)); // 1 day ago
+        deduction1.setDate(new Date(System.currentTimeMillis() - 100000));
         deduction1.setEmployee(employee);
         deductionRepository.save(deduction1);
 
         Deduction deduction2 = new Deduction();
         deduction2.setAmount(300);
         deduction2.setDeductionName("Retirement Plan");
-        deduction2.setDate(new Date(System.currentTimeMillis() - 500000)); // 5 days ago
+        deduction2.setDate(new Date(System.currentTimeMillis() - 500000));
         deduction2.setEmployee(employee);
         deductionRepository.save(deduction2);
     }
@@ -55,14 +53,10 @@ public class DeductionRepositoryTest {
     @Test
     @Rollback
     public void testFindByEmployeeAndDateBetween_Success() {
-        // Define the date range
-        Date startDate = new Date(System.currentTimeMillis() - 200000); // 2 days ago
-        Date endDate = new Date(); // now
-
-        // Call the method to test
+        Date startDate = new Date(System.currentTimeMillis() - 200000);
+        Date endDate = new Date();
         List<Deduction> deductions = deductionRepository.findByEmployeeAndDateBetween(employee, startDate, endDate);
 
-        // Assert the results
         assertThat(deductions).hasSize(1);
         assertThat(deductions.get(0).getDeductionName()).isEqualTo("Health Insurance");
     }
@@ -70,14 +64,10 @@ public class DeductionRepositoryTest {
     @Test
     @Rollback
     public void testFindByEmployeeAndDateBetween_Failure() {
-        // Define a date range that does not match any deductions
-        Date startDate = new Date(System.currentTimeMillis() + 100000); // 1 day in the future
-        Date endDate = new Date(System.currentTimeMillis() + 200000); // 2 days in the future
-
-        // Call the method to test
+        Date startDate = new Date(System.currentTimeMillis() + 100000);
+        Date endDate = new Date(System.currentTimeMillis() + 200000);
         List<Deduction> deductions = deductionRepository.findByEmployeeAndDateBetween(employee, startDate, endDate);
 
-        // Assert that the returned list is empty
         assertThat(deductions).isEmpty();
     }
 }

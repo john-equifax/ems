@@ -4,7 +4,7 @@ import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
 import com.equifax.ems.repository.DeductionRepository;
 import com.equifax.ems.repository.EmployeeRepository;
-import com.equifax.ems.utility.ValidationException;
+import com.equifax.ems.utility.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -49,14 +49,11 @@ public class DeductionServiceTest {
 
     @Test
     public void testAddDeduction_Success() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(deductionRepository.save(any(Deduction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         Deduction deduction = deductionService.addDeduction(1L, "Health Insurance", 200, new Date());
 
-        // Assert
         assertThat(deduction).isNotNull();
         assertThat(deduction.getDeductionName()).isEqualTo("Health Insurance");
         assertThat(deduction.getAmount()).isEqualTo(200);
@@ -65,29 +62,34 @@ public class DeductionServiceTest {
     }
 
     @Test
-    public void testAddDeduction_Failure() {
-        // Arrange
+    public void testAddDeduction_EmpNotFound() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> deductionService.addDeduction(1L, "Health Insurance", 200, new Date()))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(CustomException.class)
                 .hasMessageContaining("Employee not found");
     }
 
     @Test
+    public void testAddDeduction_Failure() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(deductionRepository.save(any(Deduction.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThatThrownBy(() -> deductionService.addDeduction(1L, "Health Insurance", 200, new Date()))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("Error adding deduction");
+    }
+
+    @Test
     public void testGetDeductionForEmployee_Success() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         List<Deduction> deductions = new ArrayList<>();
         deductions.add(new Deduction());
         when(deductionRepository.findByEmployeeAndDateBetween(any(Employee.class), any(Date.class), any(Date.class)))
                 .thenReturn(deductions);
 
-        // Act
         List<Deduction> result = deductionService.getDeductionForEmployee(1L, new Date(System.currentTimeMillis() - 100000), new Date());
 
-        // Assert
         assertThat(result).isNotEmpty();
         assertThat(result.size()).isEqualTo(1);
         verify(deductionRepository, times(1)).findByEmployeeAndDateBetween(any(Employee.class), any(Date.class), any(Date.class));
@@ -95,12 +97,10 @@ public class DeductionServiceTest {
 
     @Test
     public void testGetDeductionForEmployee_Failure() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> deductionService.getDeductionForEmployee(1L, new Date(System.currentTimeMillis() - 100000), new Date()))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(CustomException.class)
                 .hasMessageContaining("Employee not found");
     }
 }

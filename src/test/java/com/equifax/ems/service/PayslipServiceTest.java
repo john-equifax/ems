@@ -5,8 +5,8 @@ import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
 import com.equifax.ems.entity.Payslip;
 import com.equifax.ems.repository.PayslipRepository;
-import com.equifax.ems.utility.ValidationException;
-import com.equifax.ems.utility.UtlityMethods;
+import com.equifax.ems.utility.CustomException;
+import com.equifax.ems.utility.UtilityMethods;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,11 +17,13 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PayslipServiceTest {
 
@@ -47,8 +49,25 @@ class PayslipServiceTest {
         MockitoAnnotations.openMocks(this);
         employee = new Employee();
         employee.setEmployeeId(1L);
-        employee.setSalary(600000); // Set salary to test tax slab
+        employee.setSalary(600000);
         employee.setHireDate(Date.from(LocalDate.of(2020, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+    }
+
+    @Test
+    public void testFetchAllPayslips() {
+        Payslip payslip1 = new Payslip();
+        Payslip payslip2 = new Payslip();
+        List<Payslip> expectedPayslips = Arrays.asList(payslip1, payslip2);
+
+        when(payslipRepository.findAll()).thenReturn(expectedPayslips);
+
+        List<Payslip> actualPayslips = payslipService.fetchAllPayslips();
+
+        assertNotNull(actualPayslips);
+        assertEquals(2, actualPayslips.size());
+        assertEquals(expectedPayslips, actualPayslips);
+
+        verify(payslipRepository).findAll();
     }
 
     @Test
@@ -58,11 +77,10 @@ class PayslipServiceTest {
 
         when(employeeService.getEmployeeById(1L)).thenReturn(employee);
         when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
-        when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenReturn(Arrays.asList(new Bonus(1L, 1000.0, new Date(), employee)));
-        when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenReturn(Arrays.asList(new Deduction(1L, 500.0, new Date(), employee)));
+        when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Bonus(1L, 1000.0, new Date(), employee)));
+        when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Deduction(1L, 500.0, new Date(), employee)));
         when(payslipRepository.save(any(Payslip.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Calculate expected values
         double basicCTC = employee.getSalary();
         double perDaySalary = basicCTC / 365;
         long daysInThePeriod = 30;
@@ -71,8 +89,7 @@ class PayslipServiceTest {
         double totalDeductions = 500.0;
         double netAmount = paymentForPeriod + totalBonuses - totalDeductions;
 
-        // Calculate tax based on the salary
-        double taxPercentage = UtlityMethods.calculateTaxSlab(basicCTC);
+        double taxPercentage = UtilityMethods.calculateTaxSlab(basicCTC);
         double taxAmount = netAmount * taxPercentage / 100;
         double netPay = netAmount - taxAmount;
 
@@ -91,11 +108,11 @@ class PayslipServiceTest {
 
         when(employeeService.getEmployeeById(1L)).thenReturn(null);
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             payslipService.generatepayslip(1L, startDate, endDate);
         });
 
-        assertEquals("Error generating payslip: Employee not found with id: 1", exception.getMessage());
+        assertEquals("Employee not found with id: 1", exception.getMessage());
     }
 
     @Test
@@ -125,11 +142,11 @@ class PayslipServiceTest {
         Date startDate = Date.from(LocalDate.of(2023, 2, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date endDate = Date.from(LocalDate.of(2023, 1, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             payslipService.generatepayslip(1L, startDate, endDate);
         });
 
-        assertEquals("Error generating payslip: Oops! The start date is after the end date.", exception.getMessage());
+        assertEquals("Oops! The start date is after the end date.", exception.getMessage());
     }
 
     @Test
@@ -141,10 +158,26 @@ class PayslipServiceTest {
         when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
         when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenThrow(new RuntimeException("Database error"));
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             payslipService.generatepayslip(1L, startDate, endDate);
         });
 
-        assertEquals("Error generating payslip: Database error", exception.getMessage());
+        assertEquals("Error fetching bonuses for employee: Database error", exception.getMessage());
+    }
+
+    @Test
+    void testGeneratePayslip_ErrorFetchingDeductions() {
+        Date startDate = Date.from(LocalDate.of(2023, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDate.of(2023, 1, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(employeeService.getEmployeeById(1L)).thenReturn(employee);
+        when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
+        when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenThrow(new RuntimeException("Database error"));
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            payslipService.generatepayslip(1L, startDate, endDate);
+        });
+
+        assertEquals("Error fetching deductions for employee: Database error", exception.getMessage());
     }
 }

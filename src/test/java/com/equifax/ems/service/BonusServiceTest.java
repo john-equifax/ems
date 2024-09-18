@@ -4,7 +4,7 @@ import com.equifax.ems.entity.Bonus;
 import com.equifax.ems.entity.Employee;
 import com.equifax.ems.repository.BonusRepository;
 import com.equifax.ems.repository.EmployeeRepository;
-import com.equifax.ems.utility.ValidationException;
+import com.equifax.ems.utility.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -49,14 +49,11 @@ public class BonusServiceTest {
 
     @Test
     public void testAddBonus_Success() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(bonusRepository.save(any(Bonus.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         Bonus bonus = bonusService.addBonus(1L, "Performance Bonus", 1000, new Date());
 
-        // Assert
         assertThat(bonus).isNotNull();
         assertThat(bonus.getBonusName()).isEqualTo("Performance Bonus");
         assertThat(bonus.getAmount()).isEqualTo(1000);
@@ -65,29 +62,34 @@ public class BonusServiceTest {
     }
 
     @Test
-    public void testAddBonus_Failure() {
-        // Arrange
+    public void testAddBonus_EmpNotFound() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> bonusService.addBonus(1L, "Performance Bonus", 1000, new Date()))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(CustomException.class)
                 .hasMessageContaining("Employee not found");
     }
 
     @Test
+    public void testAddBonus_Failure() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.ofNullable(employee));
+        when(bonusRepository.save(any(Bonus.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThatThrownBy(() -> bonusService.addBonus(1L, "Performance Bonus", 1000, new Date()))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("Error adding bonus");
+    }
+
+    @Test
     public void testGetBonusesForEmployee_Success() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         List<Bonus> bonuses = new ArrayList<>();
         bonuses.add(new Bonus());
         when(bonusRepository.findByEmployeeAndDateBetween(any(Employee.class), any(Date.class), any(Date.class)))
                 .thenReturn(bonuses);
 
-        // Act
         List<Bonus> result = bonusService.getBonusesForEmployee(1L, new Date(System.currentTimeMillis() - 100000), new Date());
 
-        // Assert
         assertThat(result).isNotEmpty();
         assertThat(result.size()).isEqualTo(1);
         verify(bonusRepository, times(1)).findByEmployeeAndDateBetween(any(Employee.class), any(Date.class), any(Date.class));
@@ -95,12 +97,10 @@ public class BonusServiceTest {
 
     @Test
     public void testGetBonusesForEmployee_Failure() {
-        // Arrange
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> bonusService.getBonusesForEmployee(1L, new Date(System.currentTimeMillis() - 100000), new Date()))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(CustomException.class)
                 .hasMessageContaining("Employee not found");
     }
 }

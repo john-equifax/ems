@@ -1,6 +1,10 @@
 package com.equifax.ems.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import java.util.Date;
 import java.util.List;
@@ -11,13 +15,24 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long employeeId;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phoneNumber;
-    private Date hireDate;
-    private double salary;
 
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @Email(message = "Email should be valid")
+    private String email;
+
+    @NotBlank(message = "Phone number is required")
+    private String phoneNumber;
+
+    @NotNull(message = "Hire date is required")
+    private Date hireDate;
+
+    @Positive(message = "Salary must be positive")
+    private double salary;
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<Bonus> bonuses;
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
@@ -39,7 +54,6 @@ public class Employee {
         this.salary = salary;
     }
 
-    //Setter and getter for Employee ID
     public Long getEmployeeId() {
         return employeeId;
     }
@@ -48,7 +62,6 @@ public class Employee {
         this.employeeId = employeeId;
     }
 
-    //Setter and getter for Employee FIRSTNAME
     public String getFirstName() {
         return firstName;
     }
@@ -57,7 +70,6 @@ public class Employee {
         this.firstName = firstName;
     }
 
-    //Setter and getter for Employee LASTNAME
     public String getLastName() {
         return lastName;
     }
@@ -66,7 +78,6 @@ public class Employee {
         this.lastName = lastName;
     }
 
-    //Setter and getter for Employee EMAIL
     public String getEmail() {
         return email;
     }
@@ -75,7 +86,7 @@ public class Employee {
         this.email = email;
     }
 
-    //Setter and getter for Employee PHONENUMBER
+
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -84,7 +95,7 @@ public class Employee {
         this.phoneNumber = phoneNumber;
     }
 
-    //Setter and getter for Employee HIREDATE
+
     public Date getHireDate() {
         return hireDate;
     }
@@ -93,7 +104,6 @@ public class Employee {
         this.hireDate = hireDate;
     }
 
-    //Setter and getter for Employee SALARY
     public double getSalary() {
         return salary;
     }
