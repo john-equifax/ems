@@ -17,6 +17,8 @@ public class Payslip {
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
+
+
     private Date generateDate;
     private Date startDate;
     private Date endDate;
@@ -66,6 +68,17 @@ public class Payslip {
         this.netPay = netPay;
     }
 
+    public Long getPayslipId() {
+        return payslipId;
+    }
+
+    public Date getGenerateDate() {
+        return generateDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
 
     public Employee getEmployee() {
         return employee;

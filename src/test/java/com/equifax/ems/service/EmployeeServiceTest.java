@@ -35,6 +35,9 @@ public class EmployeeServiceTest {
     @Mock
     private DeductionService deductionService;
 
+    @Mock
+    private PayService payService;
+
     private Employee employee;
 
     @BeforeEach

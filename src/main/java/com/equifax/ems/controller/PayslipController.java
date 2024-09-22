@@ -27,11 +27,14 @@ public class PayslipController {
     }
 
     @PostMapping("/generate/{id}")
-    public ResponseEntity<ApiResponse> generatePayslip(@PathVariable Long id,
-                                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-                                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+    public ResponseEntity<ApiResponse> generatePayslip(@PathVariable Long id, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
         Payslip payslip = payslipService.generatepayslip(id, startDate, endDate);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(HttpStatus.CREATED.value(), payslip, null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(HttpStatus.CREATED.value(), payslip, null));
+    }
+
+    @PostMapping("/generate/all")
+    public ResponseEntity<ApiResponse> generatePayslipALl(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        List<Payslip> payslips = payslipService.generatePayslipAll(startDate, endDate);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse(HttpStatus.CREATED.value(), payslips, null));
     }
 }

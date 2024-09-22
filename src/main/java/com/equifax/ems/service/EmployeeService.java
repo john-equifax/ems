@@ -3,9 +3,12 @@ package com.equifax.ems.service;
 import com.equifax.ems.entity.Bonus;
 import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
+import com.equifax.ems.entity.Pay;
 import com.equifax.ems.repository.EmployeeRepository;
+import com.equifax.ems.repository.PayRepository;
 import com.equifax.ems.utility.CustomException;
 import com.equifax.ems.utility.ErrorMessage;
+import com.equifax.ems.utility.UtilityMethods;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +24,19 @@ public class EmployeeService {
     private BonusService bonusService;
     @Autowired
     private DeductionService deductionService;
+    @Autowired
+    private PayService payService;
+
 
     public Employee saveEmployee(Employee employee) {
         try {
-            return employeeRepository.save(employee);
+            Employee savedEmployee = employeeRepository.save(employee);
+
+            Pay pay = UtilityMethods.createPay(savedEmployee.getSalary());
+            pay.setEmployee(savedEmployee);
+            payService.savePay(pay);
+
+            return savedEmployee;
         } catch (RuntimeException e) {
             throw new CustomException(ErrorMessage.ERROR_SAVING_EMPLOYEE.getMessage(e.getMessage()));
         }

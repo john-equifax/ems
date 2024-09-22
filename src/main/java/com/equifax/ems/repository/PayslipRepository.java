@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface PayslipRepository extends JpaRepository<Payslip, Long> {
-
     @Query("SELECT p FROM Payslip p WHERE p.employee.employeeId = :employeeId AND " +
             "((p.startDate BETWEEN :startDate AND :endDate) OR " +
             "(p.endDate BETWEEN :startDate AND :endDate))")

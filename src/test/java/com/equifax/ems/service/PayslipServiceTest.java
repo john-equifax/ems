@@ -1,9 +1,6 @@
 package com.equifax.ems.service;
 
-import com.equifax.ems.entity.Bonus;
-import com.equifax.ems.entity.Deduction;
-import com.equifax.ems.entity.Employee;
-import com.equifax.ems.entity.Payslip;
+import com.equifax.ems.entity.*;
 import com.equifax.ems.repository.PayslipRepository;
 import com.equifax.ems.utility.CustomException;
 import com.equifax.ems.utility.UtilityMethods;
@@ -42,6 +39,10 @@ class PayslipServiceTest {
     @Mock
     private DeductionService deductionService;
 
+    @Mock
+    private PayService payService;
+
+
     private Employee employee;
 
     @BeforeEach
@@ -72,28 +73,40 @@ class PayslipServiceTest {
 
     @Test
     void testGeneratePayslip_Success() {
+
         Date startDate = Date.from(LocalDate.of(2023, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date endDate = Date.from(LocalDate.of(2023, 1, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        employee.setHireDate(Date.from(LocalDate.of(2022, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        employee.setSalary(120000.0);
+
+
+        Pay pay =  UtilityMethods.createPay(employee.getSalary());
 
         when(employeeService.getEmployeeById(1L)).thenReturn(employee);
         when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
         when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Bonus(1L, 1000.0, new Date(), employee)));
         when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Deduction(1L, 500.0, new Date(), employee)));
+        when(payService.getPayForEmployee(1L)).thenReturn(pay);
         when(payslipRepository.save(any(Payslip.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        double basicCTC = employee.getSalary();
-        double perDaySalary = basicCTC / 365;
-        long daysInThePeriod = 30;
-        double paymentForPeriod = daysInThePeriod * perDaySalary;
+
+        double netPayYearly = pay.getBasicPay() + pay.getHra() + pay.getTravelAllowance() + pay.getMealAllowance() + pay.getMedicalAllowance()
+                - pay.getProvidentFund() - pay.getGratuity();
+        double netPayDaily = netPayYearly / 365;
+        long daysInThePeriod = 30; // January has 31 days
+        double paymentForPeriod = daysInThePeriod * netPayDaily;
         double totalBonuses = 1000.0;
         double totalDeductions = 500.0;
         double netAmount = paymentForPeriod + totalBonuses - totalDeductions;
 
-        double taxPercentage = UtilityMethods.calculateTaxSlab(basicCTC);
+        double taxPercentage = UtilityMethods.calculateTaxSlab(netPayYearly);
         double taxAmount = netAmount * taxPercentage / 100;
         double netPay = netAmount - taxAmount;
 
+
         Payslip payslip = payslipService.generatepayslip(1L, startDate, endDate);
+
 
         assertNotNull(payslip);
         assertEquals(1L, payslip.getEmployee().getEmployeeId());

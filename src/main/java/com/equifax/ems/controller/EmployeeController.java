@@ -3,9 +3,11 @@ package com.equifax.ems.controller;
 import com.equifax.ems.entity.Bonus;
 import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
+import com.equifax.ems.entity.Pay;
 import com.equifax.ems.service.BonusService;
 import com.equifax.ems.service.DeductionService;
 import com.equifax.ems.service.EmployeeService;
+import com.equifax.ems.service.PayService;
 import com.equifax.ems.utility.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -30,6 +32,8 @@ public class EmployeeController {
     private BonusService bonusService;
     @Autowired
     private DeductionService deductionService;
+    @Autowired
+    private PayService payService;
 
     @GetMapping("/list")
     public ResponseEntity<ApiResponse> getAllEmployees() {
@@ -55,6 +59,12 @@ public class EmployeeController {
         return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), deductions, null));
     }
 
+    @GetMapping("/{id}/pay")
+    public ResponseEntity<ApiResponse> getPay(@PathVariable("id") Long id) {
+        Pay pay = payService.getPayForEmployee(id);
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(),pay, null));
+    }
+
     @PostMapping("/new")
     public ResponseEntity<ApiResponse> saveEmployee(@Valid @RequestBody Employee employee) {
         Employee savedEmployee = employeeService.saveEmployee(employee);
@@ -76,9 +86,9 @@ public class EmployeeController {
 
     @PostMapping("/{id}/bonus/add")
     public ResponseEntity<ApiResponse> addEmployeeBonus(@PathVariable("id") Long id,
-                                                        @Valid @RequestParam String name,
-                                                        @Positive @RequestParam double amount,
-                                                        @NotNull @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+                                                        @RequestParam String name,
+                                                        @RequestParam double amount,
+                                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
         Bonus bonus = employeeService.addEmployeeBonus(id, name, amount, date);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(HttpStatus.CREATED.value(), bonus, null));
@@ -86,9 +96,9 @@ public class EmployeeController {
 
     @PostMapping("/{id}/deduction/add")
     public ResponseEntity<ApiResponse> addEmployeeDeduction(@PathVariable("id") Long id,
-                                                            @Valid @RequestParam String name,
-                                                            @Positive @RequestParam double amount,
-                                                            @NotNull @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
+                                                            @RequestParam String name,
+                                                            @RequestParam double amount,
+                                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
         Deduction deduction = employeeService.addEmployeeDeduction(id, name, amount, date);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse(HttpStatus.CREATED.value(), deduction, null));

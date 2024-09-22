@@ -33,12 +33,15 @@ public class Employee {
 
     @Positive(message = "Salary must be positive")
     private double salary;
+
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<Bonus> bonuses;
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<Deduction> deductions;
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<Payslip> payslips;
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+    private Pay pay;
 
 
     public Employee() {

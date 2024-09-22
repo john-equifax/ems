@@ -14,13 +14,10 @@ public class Deduction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long deductionId;
 
-    @NotBlank(message = "Deduction name is required")
     private String deductionName;
 
-    @Positive(message = "Amount must be positive")
     private double amount;
 
-    @NotNull(message = "Date is required")
     private Date date;
 
 

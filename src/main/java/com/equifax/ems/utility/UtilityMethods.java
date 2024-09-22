@@ -1,5 +1,7 @@
 package com.equifax.ems.utility;
 
+import com.equifax.ems.entity.Pay;
+
 public class UtilityMethods {
     public static double calculateTaxSlab(double income) {
         double taxPercentage = 0.0;
@@ -21,5 +23,16 @@ public class UtilityMethods {
             taxPercentage = 30; // 30% tax
         }
         return taxPercentage;
+    }
+    public static Pay createPay(Double salary) {
+        Pay pay = new Pay();
+        pay.setBasicPay(0.45 * salary);
+        pay.setGratuity(0.05 * salary);
+        pay.setHra(0.20 * salary);
+        pay.setTravelAllowance(0.07 * salary);
+        pay.setMealAllowance(0.03 * salary);
+        pay.setMedicalAllowance(0.08 * salary);
+        pay.setProvidentFund(0.12 * salary);
+        return pay; // Just return the Pay object without saving it
     }
 }
