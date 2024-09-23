@@ -56,7 +56,8 @@ public class EmployeeService {
     }
 
     public Employee updateEmployeeById(Long id, Employee employee) {
-        Employee originalEmployee = getEmployeeById(id);
+        Employee originalEmployee = employeeRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorMessage.EMPLOYEE_NOT_FOUND.getMessage(id)));
         if (Objects.nonNull(employee.getFirstName()) && !"".equalsIgnoreCase(employee.getFirstName())) {
             originalEmployee.setFirstName(employee.getFirstName());
         }

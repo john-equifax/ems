@@ -193,4 +193,70 @@ class PayslipServiceTest {
 
         assertEquals("Error fetching deductions for employee: Database error", exception.getMessage());
     }
+
+    @Test
+    void testGeneratePayslip_InvalidDateRange() {
+        Date startDate = Date.from(LocalDate.of(2023, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDate.of(2023, 1, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()); // 15 days
+
+        when(employeeService.getEmployeeById(1L)).thenReturn(employee);
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            payslipService.generatepayslip(1L, startDate, endDate);
+        });
+
+        assertEquals("Oops! Invalid date range.", exception.getMessage());
+    }
+
+    @Test
+    void testGeneratePayslip_ErrorFetchingPay() {
+        Date startDate = Date.from(LocalDate.of(2023, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDate.of(2023, 1, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        when(employeeService.getEmployeeById(1L)).thenReturn(employee);
+        when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
+        when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Bonus(1L, 1000.0, new Date(), employee)));
+        when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Deduction(1L, 500.0, new Date(), employee)));
+        when(payService.getPayForEmployee(1L)).thenThrow(new RuntimeException("Database error"));
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            payslipService.generatepayslip(1L, startDate, endDate);
+        });
+
+        assertEquals("Error fetching pay: Database error", exception.getMessage());
+    }
+
+    @Test
+    void testGeneratePayslipAll() {
+        Date startDate = Date.from(LocalDate.of(2023, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(LocalDate.of(2023, 1, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        Employee employee2 = new Employee();
+        employee2.setEmployeeId(2L);
+        employee2.setSalary(600000);
+        employee2.setHireDate(Date.from(LocalDate.of(2021, 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+
+        List<Employee> employees = Arrays.asList(employee, employee2);
+        when(employeeService.fetchAllEmployees()).thenReturn(employees);
+
+        when(employeeService.getEmployeeById(1L)).thenReturn(employee);
+        when(employeeService.getEmployeeById(2L)).thenReturn(employee2);
+        when(payslipRepository.findPayslipByEmployeeAndDateRange(1L, startDate, endDate)).thenReturn(Optional.empty());
+        when(payslipRepository.findPayslipByEmployeeAndDateRange(2L, startDate, endDate)).thenReturn(Optional.empty());
+        when(bonusService.getBonusesForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Bonus(1L, 1000.0, new Date(), employee)));
+        when(bonusService.getBonusesForEmployee(2L, startDate, endDate)).thenReturn(List.of(new Bonus(2L, 1500.0, new Date(), employee2)));
+        when(deductionService.getDeductionForEmployee(1L, startDate, endDate)).thenReturn(List.of(new Deduction(1L, 500.0, new Date(), employee)));
+        when(deductionService.getDeductionForEmployee(2L, startDate, endDate)).thenReturn(List.of(new Deduction(2L, 700.0, new Date(), employee2)));
+        when(payService.getPayForEmployee(1L)).thenReturn(UtilityMethods.createPay(employee.getSalary()));
+        when(payService.getPayForEmployee(2L)).thenReturn(UtilityMethods.createPay(employee2.getSalary()));
+        when(payslipRepository.save(any(Payslip.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<Payslip> payslips = payslipService.generatePayslipAll(startDate, endDate);
+
+        assertNotNull(payslips);
+        assertEquals(2, payslips.size());
+        assertEquals(1L, payslips.get(0).getEmployee().getEmployeeId());
+        assertEquals(2L, payslips.get(1).getEmployee().getEmployeeId());
+    }
+
 }

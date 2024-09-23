@@ -114,4 +114,7 @@ public class Employee {
     public void setSalary(double salary) {
         this.salary = salary;
     }
+
+    public void setId(long l) {
+    }
 }

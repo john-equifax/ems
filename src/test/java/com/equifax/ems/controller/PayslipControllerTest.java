@@ -94,4 +94,45 @@ public class PayslipControllerTest {
         assertEquals("Employee not found", exception.getMessage());
         verify(payslipService, times(1)).generatepayslip(empId, startDate, endDate);
     }
+    @Test
+    public void testGeneratePayslipAll_Success() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+        List<Payslip> payslips = new ArrayList<>();
+        payslips.add(new Payslip()); // Add a sample Payslip
+
+        when(payslipService.generatePayslipAll(startDate, endDate)).thenReturn(payslips);
+
+        // Act
+        ResponseEntity<ApiResponse> response = payslipController.generatePayslipALl(startDate, endDate);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(payslips, response.getBody().getData());
+    }
+
+    @Test
+    public void testGeneratePayslipAll_Failure() {
+        // Arrange
+        Date startDate = new Date();
+        Date endDate = new Date();
+
+        // Simulate a failure scenario, e.g., service throws an exception
+        when(payslipService.generatePayslipAll(any(Date.class), any(Date.class)))
+                .thenThrow(new RuntimeException("Service error"));
+
+        // Act
+        ResponseEntity<ApiResponse> response;
+        try {
+            response = payslipController.generatePayslipALl(startDate, endDate);
+        } catch (RuntimeException e) {
+            // Assert
+            assertEquals("Service error", e.getMessage());
+            return; // Exit the test
+        }
+
+        // If no exception was thrown, fail the test
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
 }

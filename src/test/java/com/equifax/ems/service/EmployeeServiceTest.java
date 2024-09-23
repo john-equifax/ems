@@ -86,12 +86,14 @@ public class EmployeeServiceTest {
     }
 
     @Test
-    public void testFetchAllEmployees_Failure() {
-        when(employeeRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+    public void testUpdateEmployeeById_Exception() {
 
-        assertThatThrownBy(() -> employeeService.fetchAllEmployees())
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(employeeRepository.save(any(Employee.class))).thenThrow(new RuntimeException("Database error"));
+
+        assertThatThrownBy(() -> employeeService.updateEmployeeById(1L,employee))
                 .isInstanceOf(CustomException.class)
-                .hasMessageContaining("Database error");
+                .hasMessageContaining("Error updating employee:");
     }
 
     @Test
@@ -132,6 +134,15 @@ public class EmployeeServiceTest {
         assertThatThrownBy(() -> employeeService.updateEmployeeById(1L, employee))
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining("Employee not found");
+    }
+
+    @Test
+    public void testFetchAllEmployees_Failure() {
+        when(employeeRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+
+        assertThatThrownBy(() -> employeeService.fetchAllEmployees())
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining("Database error");
     }
 
     @Test

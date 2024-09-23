@@ -3,9 +3,11 @@ package com.equifax.ems.controller;
 import com.equifax.ems.entity.Bonus;
 import com.equifax.ems.entity.Deduction;
 import com.equifax.ems.entity.Employee;
+import com.equifax.ems.entity.Pay;
 import com.equifax.ems.service.BonusService;
 import com.equifax.ems.service.DeductionService;
 import com.equifax.ems.service.EmployeeService;
+import com.equifax.ems.service.PayService;
 import com.equifax.ems.utility.ApiResponse;
 import com.equifax.ems.utility.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,9 @@ public class EmployeeControllerTest {
 
     @Mock
     private DeductionService deductionService;
+
+    @Mock
+    private PayService payService;
 
     @BeforeEach
     public void setUp() {
@@ -214,5 +219,49 @@ public class EmployeeControllerTest {
         });
 
         assertEquals("Employee not found", exception.getMessage());
+    }
+
+    @Test
+    public void testGetPay_Success() {
+        Long employeeId = 1L;
+        Employee employee = new Employee();
+        employee.setEmployeeId(employeeId);
+        employee.setFirstName("John");
+        employee.setLastName("Doe");
+        employee.setEmail("john.doe@example.com");
+        employee.setPhoneNumber("1234567890");
+        employee.setHireDate(new Date());
+        employee.setSalary(50000.0);
+
+        Pay pay = new Pay();
+        pay.setPayId(1L);
+        pay.setBasicPay(30000.0);
+        pay.setGratuity(5000.0);
+        pay.setHra(8000.0);
+        pay.setTravelAllowance(2000.0);
+        pay.setMealAllowance(1000.0);
+        pay.setMedicalAllowance(2000.0);
+        pay.setProvidentFund(3000.0);
+        pay.setEmployee(employee);
+
+        when(payService.getPayForEmployee(employeeId)).thenReturn(pay);
+
+        ResponseEntity<ApiResponse> response = employeeController.getPay(employeeId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(pay, response.getBody().getData());
+    }
+
+    @Test
+    public void testGetPay_EmployeeNotFound() {
+        Long employeeId = 1L;
+        when(payService.getPayForEmployee(employeeId)).thenThrow(new CustomException("Pay not found"));
+
+        Exception exception = assertThrows(CustomException.class, () -> {
+            employeeController.getPay(employeeId);
+        });
+
+        assertEquals("Pay not found", exception.getMessage());
     }
 }
